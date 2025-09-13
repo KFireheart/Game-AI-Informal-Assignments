@@ -19,4 +19,11 @@ Constants.PACKAGE_PATHS.PROMISE = Constants.PACKAGE_PATHS.BASE:WaitForChild("how
 Constants.PACKAGE_PATHS.ZONE = Constants.PACKAGE_PATHS.BASE:WaitForChild("legendoj1_zoneplus@3.2.2"):WaitForChild("zoneplus")
 -- #endregion
 
+-- #region Controllers
+Constants.CONTROLLERS = {}
+Constants.CONTROLLERS.CONTROLS_UI_CONTROLLER = "ControlsUIController"
+Constants.CONTROLLERS.GRID_CONTROLLER = "GridController"
+-- #endregion
+
+
 return Constants
