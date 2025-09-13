@@ -25,5 +25,15 @@ Constants.CONTROLLERS.CONTROLS_UI_CONTROLLER = "ControlsUIController"
 Constants.CONTROLLERS.GRID_CONTROLLER = "GridController"
 -- #endregion
 
+-- #region cubes folder
+Constants.CUBES_FOLDER = game:GetService("ReplicatedStorage"):WaitForChild("Cubes")
+-- #endregion
+
+-- #region grid constants
+Constants.GRID_COLUMNS = 50
+Constants.GRID_ROWS = 50
+-- #endregion
+
+
 
 return Constants
