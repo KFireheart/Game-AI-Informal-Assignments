@@ -12,6 +12,9 @@ function ControlsUIController:KnitInit()
     self.janitor = Janitor.new()
     self.tween_maid = Janitor.new()
 
+    --Grid Controller
+    self.grid_controller = Knit.GetController(Constants.CONTROLLERS.GRID_CONTROLLER)
+
     self.controls_gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ControlsGui")
     self.controls_main_frame = self.controls_gui:WaitForChild("ControlsMainFrame")
 
@@ -20,6 +23,27 @@ function ControlsUIController:KnitInit()
 
     self.is_controls_open = false
 
+
+    -- Buttons
+    self.play_button = self.controls_main_frame:WaitForChild("PlayButton")
+    self.stop_button = self.controls_main_frame:WaitForChild("StopButton")
+    self.reset_button = self.controls_main_frame:WaitForChild("ResetButton")
+    self.angel_button = self.controls_main_frame:WaitForChild("AngelButton")
+    self.glider_button = self.controls_main_frame:WaitForChild("GliderButton")
+    self.blinker_button = self.controls_main_frame:WaitForChild("BlinkerButton")
+
+    --text box
+    self.speed_input = self.controls_main_frame:WaitForChild("SpeedTextBox")
+
+    --labels
+    self.current_selection_label = self.controls_main_frame:WaitForChild("CurrentSelection")
+
+    --Current Selection
+    self.current_selection = "None"
+
+
+    
+--#region Buttons
     self.janitor:Add(self.controls_button.Activated:Connect(function()
         print("ControlsButton activated")
         self:OpenControls()
@@ -29,6 +53,49 @@ function ControlsUIController:KnitInit()
         print("CloseButton activated")
         self:CloseControls()
     end),"Disconnect")
+
+    self.janitor:Add(self.play_button.Activated:Connect(function()
+        print("PlayButton activated")
+        self:Play()
+    end),"Disconnect")
+    
+    self.janitor:Add(self.stop_button.Activated:Connect(function()
+        print("StopButton activated")
+        self:Stop()
+    end),"Disconnect")
+    
+    self.janitor:Add(self.reset_button.Activated:Connect(function()
+        print("ResetButton activated")
+        self:Reset()
+    end),"Disconnect")
+    
+    self.janitor:Add(self.angel_button.Activated:Connect(function()
+        print("AngelButton activated")
+        self:Angel()
+    end),"Disconnect")
+    
+    
+    self.janitor:Add(self.glider_button.Activated:Connect(function()
+        print("GliderButton activated")
+        self:Glider()
+    end),"Disconnect")
+    
+    
+    self.janitor:Add(self.blinker_button.Activated:Connect(function()
+        print("BlinkerButton activated")
+        self:Blinker()
+    end),"Disconnect")
+
+
+--#endregion
+    
+--#region TextBox
+    self.janitor:Add(self.speed_input.FocusLost:Connect(function()
+        print("SpeedTextBox focus lost")
+        self:ChangeSpeed()
+    end),"Disconnect")
+--#endregion
+    
 end
 
 function ControlsUIController:KnitStart()
@@ -71,6 +138,46 @@ function ControlsUIController:SlideOpenControlsMenu(duration: number, startPosit
     end
 
     tween:Play()
+end
+
+function ControlsUIController:Play()
+    self.grid_controller:Start()
+end
+
+function ControlsUIController:Stop()
+    self.grid_controller:Stop()
+end
+
+function ControlsUIController:Reset()
+    print("Reset")
+    self.grid_controller:Reset()
+end
+
+function ControlsUIController:Angel()
+    print("Angel")
+    self.current_selection = "Angel"
+    self.current_selection_label.Text = self.current_selection
+    self.grid_controller:SetSelection(self.current_selection)
+end
+
+function ControlsUIController:Glider()
+    print("Glider")
+    self.current_selection = "Glider"
+    self.current_selection_label.Text = self.current_selection
+    self.grid_controller:SetSelection(self.current_selection)
+end
+
+function ControlsUIController:Blinker()
+    print("Blinker")
+    self.current_selection = "Blinker"
+    self.current_selection_label.Text = self.current_selection
+    self.grid_controller:SetSelection(self.current_selection)
+end
+
+function ControlsUIController:ChangeSpeed()
+    print("ChangeSpeed")
+    self.speed = self.speed_input.Text
+    self.grid_controller:ChangeSpeed(self.speed)
 end
 
 return ControlsUIController

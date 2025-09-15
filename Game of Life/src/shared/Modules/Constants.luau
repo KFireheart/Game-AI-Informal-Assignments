@@ -27,6 +27,9 @@ Constants.CONTROLLERS.GRID_CONTROLLER = "GridController"
 
 -- #region cubes folder
 Constants.CUBES_FOLDER = game:GetService("ReplicatedStorage"):WaitForChild("Cubes")
+Constants.CUBE_ANGEL_COLOR = Color3.fromRGB(239, 255, 96)
+Constants.CUBE_GLIDER_COLOR = Color3.fromRGB(84, 255, 198)
+Constants.CUBE_BLINKER_COLOR = Color3.fromRGB(180, 87, 255)
 -- #endregion
 
 -- #region grid constants
