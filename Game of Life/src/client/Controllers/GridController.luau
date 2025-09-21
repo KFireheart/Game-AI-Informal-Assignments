@@ -9,22 +9,62 @@ local GridController = Knit.CreateController({Name = Constants.CONTROLLERS.GRID_
 function GridController:KnitInit()
     self.janitor = Janitor.new()
 
+    self.is_running = false
+    self.current_selection = "Angel"
+    self.speed = 0.2
 
-    -- Initialize some cells for testing (using flat array structure)
-    self.cells = {}
-    -- Create a simple pattern near the center of the grid
+    self.glider_cells = {}
+    self.blinker_cells = {}
+    self.angel_cells = {}
+
+
+    --Center of the grid
     local centerY = math.floor(Constants.GRID_ROWS / 2)
     local centerX = math.floor(Constants.GRID_COLUMNS / 2)
+
+    -- #region Glider pattern
+    self.glider_cells[(centerY-1) * Constants.GRID_COLUMNS + centerX] = 1
+    self.glider_cells[(centerY) * Constants.GRID_COLUMNS + (centerX+1)] = 1
+    self.glider_cells[(centerY+1) * Constants.GRID_COLUMNS + (centerX+2)] = 1
+    self.glider_cells[(centerY+2) * Constants.GRID_COLUMNS + (centerX+0)] = 1
+    self.glider_cells[(centerY+2) * Constants.GRID_COLUMNS + (centerX+1)] = 1
+    -- #endregion
+
+
+    -- #region Blinker pattern
+    self.blinker_cells[(centerY-1) * Constants.GRID_COLUMNS + centerX] = 1
+    self.blinker_cells[(centerY) * Constants.GRID_COLUMNS + centerX] = 1
+    self.blinker_cells[(centerY+1) * Constants.GRID_COLUMNS + centerX] = 1
+    -- #endregion
+
     
-    -- Create a simple 3x3 pattern
-    self.cells[(centerY-1) * Constants.GRID_COLUMNS + (centerX-1)] = 1  -- Top-left
-    self.cells[(centerY-1) * Constants.GRID_COLUMNS + centerX] = 1      -- Top-center
-    self.cells[(centerY-1) * Constants.GRID_COLUMNS + (centerX+1)] = 1  -- Top-right
-    self.cells[centerY * Constants.GRID_COLUMNS + (centerX-1)] = 1      -- Middle-left
-    self.cells[centerY * Constants.GRID_COLUMNS + (centerX+1)] = 1      -- Middle-right
-    self.cells[(centerY+1) * Constants.GRID_COLUMNS + (centerX-1)] = 1  -- Bottom-left
-    self.cells[(centerY+1) * Constants.GRID_COLUMNS + centerX] = 1      -- Bottom-center
-    self.cells[(centerY+1) * Constants.GRID_COLUMNS + (centerX+1)] = 1  -- Bottom-right
+    -- #region Angel pattern
+    -- Head (halo)
+    self.angel_cells[(centerY-3) * Constants.GRID_COLUMNS + centerX] = 1
+    
+    -- Wings (spread out)
+    self.angel_cells[(centerY-2) * Constants.GRID_COLUMNS + (centerX-2)] = 1  -- Left wing tip
+    self.angel_cells[(centerY-2) * Constants.GRID_COLUMNS + (centerX-1)] = 1  -- Left wing
+    self.angel_cells[(centerY-2) * Constants.GRID_COLUMNS + (centerX+1)] = 1  -- Right wing
+    self.angel_cells[(centerY-2) * Constants.GRID_COLUMNS + (centerX+2)] = 1  -- Right wing tip
+    
+    -- Body
+    self.angel_cells[(centerY-1) * Constants.GRID_COLUMNS + centerX] = 1      -- Upper body
+    self.angel_cells[centerY * Constants.GRID_COLUMNS + centerX] = 1          -- Middle body
+    self.angel_cells[(centerY+1) * Constants.GRID_COLUMNS + centerX] = 1      -- Lower body
+    
+    -- Arms
+    self.angel_cells[(centerY) * Constants.GRID_COLUMNS + (centerX-1)] = 1    -- Left arm
+    self.angel_cells[(centerY) * Constants.GRID_COLUMNS + (centerX+1)] = 1    -- Right arm
+    
+    -- Dress bottom
+    self.angel_cells[(centerY+2) * Constants.GRID_COLUMNS + (centerX-1)] = 1  -- Left dress
+    self.angel_cells[(centerY+2) * Constants.GRID_COLUMNS + centerX] = 1      -- Center dress
+    self.angel_cells[(centerY+2) * Constants.GRID_COLUMNS + (centerX+1)] = 1  -- Right dress
+    -- #endregion
+
+    -- Set the default selection after all patterns are defined
+    self.current_selection_cells = self.angel_cells
 
     self.current_grid = {}
     self.next_grid = {}
@@ -32,22 +72,11 @@ function GridController:KnitInit()
 end
 
 function GridController:KnitStart()
-    -- Run the grid function
-    print(self.cells)
-    self:LifeGrid(Constants.GRID_COLUMNS, Constants.GRID_ROWS, self.cells)
+    -- Run the grid function    
+    self:LifeGrid(Constants.GRID_COLUMNS, Constants.GRID_ROWS, self.angel_cells)
     
     -- Create visual cubes for initial cells
     self:CreateInitialCubes()
-    
-    -- Use a proper timer instead of Heartbeat
-    local function gameLoop()
-        while true do
-            self:Step()
-            task.wait(.1) -- Wait 1 second between steps
-        end
-    end
-    
-    self.janitor:Add(task.spawn(gameLoop), "Disconnect")
 end
 
 function GridController:LifeGrid(columns, rows, cells)
@@ -100,25 +129,22 @@ end
 function GridController:CountNeighbors(y, x)
     local neighbors = 0
 
+    -- Check all 8 neighboring cells (including diagonals)
     local offsets = {
-        {0, 1},
-        {0, -1},
-        {1, 0},
-        {-1, 0},
-        {1, 1},
+        {-1, -1}, {-1, 0}, {-1, 1},  -- Top row
+        { 0, -1},          { 0, 1},  -- Middle row (excluding center)
+        { 1, -1}, { 1, 0}, { 1, 1}   -- Bottom row
     }
 
-    for dy, _ in offsets do
-        for dx, _ in offsets do
-            if(dy == 0 and dx == 0) then continue end
+    for _, offset in pairs(offsets) do
+        local dy, dx = offset[1], offset[2]
+        
+        local ny = (y + dy + Constants.GRID_ROWS) % Constants.GRID_ROWS
+        local nx = (x + dx + Constants.GRID_COLUMNS) % Constants.GRID_COLUMNS
 
-            local ny = (y + dy + Constants.GRID_COLUMNS) % Constants.GRID_COLUMNS
-            local nx = (x + dx + Constants.GRID_ROWS) % Constants.GRID_ROWS
-
-            local alive = self:GetCell(ny, nx)
-            if(alive) then
-                neighbors += 1
-            end
+        local alive = self:GetCell(ny, nx)
+        if(alive) then
+            neighbors += 1
         end
     end
 
@@ -183,7 +209,6 @@ end
 function GridController:Run(number_of_steps)
     for i = 1, number_of_steps do
         self:Step()
-        --task.wait(0.1)
     end
 end
 
@@ -219,6 +244,60 @@ function GridController:DeleteCube(y, x)
         cube_instance:Destroy()
         self.janitor:Remove(cube_instance)
         self.cube_instances[position_key] = nil
+    end
+end
+
+function GridController:ChangeSpeed(speed)
+    self.speed = speed
+end
+
+function GridController:Start()
+    self.is_running = true
+
+    -- Use a proper timer instead of Heartbeat
+    local function gameLoop()
+        while self.is_running do
+            self:Step()
+            task.wait(self.speed) -- Wait x seconds between steps
+        end
+    end
+    
+    task.spawn(gameLoop)
+end
+
+function GridController:Stop()
+    self.is_running = false
+end
+
+--start the current selection over again
+function GridController:Reset()
+    self.is_running = false
+
+    -- Clear the grids
+    self.current_grid = {}
+    self.next_grid = {}
+
+    --clear all cube instances in the workspace
+    for _, cube_instance in pairs(game.Workspace:GetChildren()) do
+        if(cube_instance.Name == "Cube") then
+            cube_instance:Destroy()
+        end
+    end
+    self.cube_instances = {}
+
+    -- Initialize the grid with the current selection cells
+    self:LifeGrid(Constants.GRID_COLUMNS, Constants.GRID_ROWS, self.current_selection_cells)
+    self:CreateInitialCubes()
+end
+
+function GridController:SetSelection(selection)
+    self.current_selection = selection
+    if(selection == "Angel") then
+        self.current_selection_cells = self.angel_cells
+    elseif(selection == "Glider") then
+        self.current_selection_cells = self.glider_cells
+    elseif(selection == "Blinker") then
+        self.current_selection_cells = self.blinker_cells
     end
 end
 
