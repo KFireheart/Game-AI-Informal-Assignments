@@ -11,10 +11,14 @@ local MazeController = Knit.CreateController({
 function MazeController:KnitInit()
     self.janitor = Janitor.new()
 
+    -- lists
+    self.horizontalWalls = {}
+    self.verticalWalls = {}
+
 end
 
 function MazeController:KnitStart()
-    print("MazeController started")
 end
+
 
 return MazeController
