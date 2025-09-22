@@ -20,5 +20,10 @@ end
 function MazeController:KnitStart()
 end
 
+function MazeController:GenerateMaze()
+end
+
+
+
 
 return MazeController
