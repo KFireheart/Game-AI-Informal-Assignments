@@ -49,7 +49,21 @@ function MazeController:GenerateMaze()
                 self.currentCell = {x = x, y = y, z = z}
                 self.visitedCells[self.currentCell.x][self.currentCell.y][self.currentCell.z] = true
 
-                
+                while not self.visitedCells.empty() do
+                    local direction = self:GetRandomDirection()
+                    local newCell = {
+                        x = self.currentCell.x + direction.x,
+                        y = self.currentCell.y + direction.y,
+                        z = self.currentCell.z + direction.z
+                    }
+
+                    if not self.visitedCells[newCell.x][newCell.y][newCell.z] then
+                        self.currentCell = newCell
+                        self.visitedCells[self.currentCell.x][self.currentCell.y][self.currentCell.z] = true
+                    end
+
+                    self.visitedCells:push(newCell)
+                end
             end
         end
     end
